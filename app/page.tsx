@@ -45,7 +45,7 @@ useEffect(() => {
       <section className="relative h-[700px] overflow-hidden">
 
         <Image
-          src="/images/orquestra.jpg"
+          src="/images/galeria/orquestra1.jpg"
           alt="Projeto Som do Alto"
           fill
           priority
@@ -835,104 +835,6 @@ além de centenas de vidas transformadas pela música ao longo de mais de três 
         >
           →
         </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-
-{/* ================= CONTATO ================= */}
-<section
-  id="contato"
-  className="bg-gray-50 py-32"
->
-
-  <div className="max-w-7xl mx-auto px-6">
-
-    <h2 className="text-5xl font-bold text-center mb-6">
-      Vamos Conversar?
-    </h2>
-
-    <p className="text-center text-gray-600 text-xl max-w-3xl mx-auto mb-20">
-      Tem interesse em conhecer nosso projeto, agendar uma apresentação ou
-      contribuir para transformar vidas através da música?
-    </p>
-
-    <div className="grid md:grid-cols-3 gap-10">
-
-      {/* ENDEREÇO */}
-      <div className="bg-white rounded-3xl shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 p-10 text-center">
-
-        <div className="text-7xl mb-6">
-          📍
-        </div>
-
-        <h3 className="text-2xl font-bold mb-4">
-          Endereço
-        </h3>
-
-        <p className="text-gray-600 leading-8">
-          COMPAZ Governador Eduardo Campos
-          <br />
-          Av. Aníbal Benévolo, S/N
-          <br />
-          Linha do Tiro • Recife/PE
-        </p>
-
-      </div>
-
-      {/* WHATSAPP */}
-      <div className="bg-white rounded-3xl shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 p-10 text-center">
-
-        <div className="text-7xl mb-6">
-          📞
-        </div>
-
-        <h3 className="text-2xl font-bold mb-4">
-          WhatsApp
-        </h3>
-
-        <p className="text-2xl text-gray-700 mb-8">
-          (81) 98803-4463
-        </p>
-
-        <a
-          href="https://wa.me/5581988034463"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-3 bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-4 rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105"
-        >
-          💬
-          Falar pelo WhatsApp
-        </a>
-
-      </div>
-
-      {/* EMAIL */}
-      <div className="bg-white rounded-3xl shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 p-10 text-center">
-
-        <div className="text-7xl mb-6">
-          ✉️
-        </div>
-
-        <h3 className="text-2xl font-bold mb-4">
-          E-mail
-        </h3>
-
-        <p className="text-gray-700 break-all mb-8">
-          projeto.adhepe@gmail.com
-        </p>
-
-        <a
-          href="mailto:projeto.adhepe@gmail.com"
-          className="inline-flex items-center gap-3 bg-orange-600 hover:bg-orange-700 text-white font-bold px-8 py-4 rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105"
-        >
-          ✉️
-          Enviar E-mail
-        </a>
 
       </div>
 
