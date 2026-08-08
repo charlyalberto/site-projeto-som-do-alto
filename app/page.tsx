@@ -1,5 +1,6 @@
 "use client";
 
+import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import QuemSomos from "./components/QuemSomos";
 import Historia from "./components/Historia";
@@ -11,11 +12,18 @@ import Parceiros from "./components/Parceiros";
 import Apoie from "./components/Apoie";
 import Depoimentos from "./components/Depoimentos";
 import Contato from "./components/Contato";
+import Footer from "./components/Footer";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-white">
-      <Hero />
+
+      <Navbar />
+
+      <div className="pt-20">
+        <Hero />
+      </div>
+
       <QuemSomos />
       <Historia />
       <Impacto />
@@ -24,8 +32,10 @@ export default function Home() {
       <Videos />
       <Parceiros />
       <Apoie />
-      <Depoimentos />    
+      <Depoimentos />
       <Contato />
+      <Footer />
+
     </main>
   );
 }
