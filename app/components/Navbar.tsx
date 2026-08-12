@@ -14,6 +14,7 @@ export default function Navbar() {
     { nome: "Vídeos", href: "#videos" },
     { nome: "Parceiros", href: "#parceiros" },
     { nome: "Contato", href: "#contato" },
+    { nome: "Inscrições 2026", href: "/inscricoes" },
   ];
 
   const fecharMenu = () => {
@@ -59,6 +60,7 @@ export default function Navbar() {
                 {link.nome}
               </a>
             ))}
+
 
             {/* APOIE */}
 
@@ -116,6 +118,7 @@ export default function Navbar() {
                   {link.nome}
                 </a>
               ))}
+
 
               <a
                 href="#apoie"

@@ -81,6 +81,17 @@ export default function Footer() {
                 </a>
               </li>
 
+              {/* INSCRIÇÕES */}
+
+              <li>
+                <a
+                  href="/inscricoes"
+                  className="text-gray-300 hover:text-orange-500 transition"
+                >
+                  Inscrições 2026
+                </a>
+              </li>
+
               <li>
                 <a
                   href="#parceiros"
