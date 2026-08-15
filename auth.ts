@@ -44,4 +44,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: {
     strategy: "jwt",
   },
+
+  callbacks: {
+    authorized({ auth, request }) {
+      const pathname = request.nextUrl.pathname;
+
+      // A página de login deve permanecer pública.
+      if (pathname === "/admin/login") {
+        return true;
+      }
+
+      // Todas as demais páginas do /admin exigem autenticação.
+      return !!auth?.user;
+    },
+  },
 });
