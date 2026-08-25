@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -86,6 +86,15 @@ type FormData = {
   declaracaoVeracidade: boolean;
 };
 
+type ConfiguracaoInscricoes = {
+  id?: number | string;
+  ano?: number | string;
+  status?: string;
+  dataAbertura?: string;
+  dataEncerramento?: string;
+  mensagemEncerramento?: string;
+};
+
 const dadosIniciais: FormData = {
   nomeAluno: "",
   whatsapp: "",
@@ -154,6 +163,15 @@ const dadosIniciais: FormData = {
 };
 
 export default function Inscricoes() {
+  const [configuracao, setConfiguracao] =
+    useState<ConfiguracaoInscricoes | null>(null);
+
+  const [carregandoConfiguracao, setCarregandoConfiguracao] =
+    useState(true);
+
+  const [erroConfiguracao, setErroConfiguracao] =
+    useState("");
+
   const [etapa, setEtapa] = useState(1);
   const [idade, setIdade] = useState<number | null>(null);
 
@@ -172,7 +190,414 @@ export default function Inscricoes() {
 
   const formRef = useRef<HTMLFormElement>(null);
 
-  const alunoMenor = idade !== null && idade < 18;
+  /*
+   * ==========================================================
+   * CONSULTAR STATUS DAS INSCRIÇÕES
+   * ==========================================================
+   */
+
+  useEffect(() => {
+    const carregarConfiguracao = async () => {
+      try {
+        setCarregandoConfiguracao(true);
+        setErroConfiguracao("");
+
+        const resposta = await fetch(
+          "/api/admin/configuracoes",
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
+
+        if (!resposta.ok) {
+          throw new Error(
+            "Não foi possível consultar o status das inscrições."
+          );
+        }
+
+        const resultado = await resposta.json();
+
+        if (!resultado.sucesso) {
+          throw new Error(
+            resultado.mensagem ||
+              "Não foi possível consultar o status das inscrições."
+          );
+        }
+
+        if (!resultado.configuracao) {
+          throw new Error(
+            "A configuração das inscrições não foi encontrada."
+          );
+        }
+
+        setConfiguracao(
+          resultado.configuracao
+        );
+      } catch (erro) {
+        console.error(
+          "Erro ao consultar configuração das inscrições:",
+          erro
+        );
+
+        setErroConfiguracao(
+          erro instanceof Error
+            ? erro.message
+            : "Não foi possível consultar o status das inscrições."
+        );
+      } finally {
+        setCarregandoConfiguracao(false);
+      }
+    };
+
+    carregarConfiguracao();
+  }, []);
+
+  /*
+   * ==========================================================
+   * STATUS ATUAL
+   * ==========================================================
+   */
+
+  const inscricoesAbertas =
+    String(
+      configuracao?.status || ""
+    ).toUpperCase() === "ABERTA";
+
+  const inscricoesFechadas =
+    String(
+      configuracao?.status || ""
+    ).toUpperCase() === "FECHADA";
+
+  const anoInscricao =
+    configuracao?.ano
+      ? String(configuracao.ano)
+      : "2026";
+
+  const mensagemEncerramento =
+    configuracao?.mensagemEncerramento ||
+    "As inscrições estão encerradas. Acompanhe nossas redes sociais para saber quando abriremos um novo período de inscrições.";
+
+  /*
+   * ==========================================================
+   * CARREGANDO CONFIGURAÇÃO
+   * ==========================================================
+   */
+
+  if (carregandoConfiguracao) {
+    return (
+      <main className="min-h-screen bg-gray-50">
+
+        <header className="bg-white border-b border-gray-100 shadow-sm">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="h-20 flex items-center justify-between">
+
+              <Link
+                href="/inscricoes"
+                className="flex items-center"
+                aria-label="Voltar para as informações das inscrições"
+              >
+                <Image
+                  src="/images/logo.png"
+                  alt="Projeto Som do Alto"
+                  width={170}
+                  height={70}
+                  className="w-[150px] md:w-[170px]"
+                  priority
+                />
+              </Link>
+
+              <Link
+                href="/inscricoes"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600"
+              >
+                <span className="text-lg">
+                  ←
+                </span>
+
+                <span>
+                  Voltar para informações da inscrição
+                </span>
+              </Link>
+
+            </div>
+          </div>
+        </header>
+
+        <section className="min-h-[calc(100vh-80px)] flex items-center justify-center px-6">
+
+          <div className="max-w-xl w-full bg-white rounded-3xl shadow-lg border border-gray-100 p-8 md:p-10 text-center">
+
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-orange-100 flex items-center justify-center text-3xl mb-5">
+              🎵
+            </div>
+
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900">
+              Verificando inscrições
+            </h1>
+
+            <p className="mt-3 text-gray-600 leading-relaxed">
+              Aguarde um momento enquanto verificamos a disponibilidade
+              das inscrições do Projeto Som do Alto.
+            </p>
+
+            <div className="mt-6 flex justify-center">
+              <div className="w-8 h-8 rounded-full border-4 border-orange-200 border-t-orange-500 animate-spin" />
+            </div>
+
+          </div>
+
+        </section>
+
+      </main>
+    );
+  }
+
+  /*
+   * ==========================================================
+   * ERRO AO CONSULTAR CONFIGURAÇÃO
+   * ==========================================================
+   */
+
+  if (erroConfiguracao) {
+    return (
+      <main className="min-h-screen bg-gray-50">
+
+        <header className="bg-white border-b border-gray-100 shadow-sm">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="h-20 flex items-center justify-between">
+
+              <Link
+                href="/inscricoes"
+                className="flex items-center"
+                aria-label="Voltar para as informações das inscrições"
+              >
+                <Image
+                  src="/images/logo.png"
+                  alt="Projeto Som do Alto"
+                  width={170}
+                  height={70}
+                  className="w-[150px] md:w-[170px]"
+                  priority
+                />
+              </Link>
+
+              <Link
+                href="/inscricoes"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600"
+              >
+                <span className="text-lg">
+                  ←
+                </span>
+
+                <span>
+                  Voltar para informações da inscrição
+                </span>
+              </Link>
+
+            </div>
+          </div>
+        </header>
+
+        <section className="min-h-[calc(100vh-80px)] flex items-center justify-center px-6">
+
+          <div className="max-w-xl w-full bg-white rounded-3xl shadow-lg border border-red-100 p-8 md:p-10 text-center">
+
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-red-100 flex items-center justify-center text-3xl mb-5">
+              ⚠️
+            </div>
+
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900">
+              Não foi possível carregar as inscrições
+            </h1>
+
+            <p className="mt-4 text-gray-600 leading-relaxed">
+              Não conseguimos verificar a disponibilidade das inscrições
+              neste momento.
+            </p>
+
+            <p className="mt-2 text-sm text-gray-500">
+              Tente atualizar a página novamente.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-6 inline-flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 px-6 py-3 font-bold text-white transition"
+            >
+              Tentar novamente
+            </button>
+
+          </div>
+
+        </section>
+
+      </main>
+    );
+  }
+
+  /*
+   * ==========================================================
+   * INSCRIÇÕES ENCERRADAS
+   * ==========================================================
+   */
+
+  if (inscricoesFechadas) {
+    return (
+      <main className="min-h-screen bg-gray-50">
+
+        {/* =====================================================
+            NAVEGAÇÃO
+        ====================================================== */}
+
+        <header className="bg-white border-b border-gray-100 shadow-sm">
+
+          <div className="max-w-7xl mx-auto px-6">
+
+            <div className="h-20 flex items-center justify-between">
+
+              <Link
+                href="/inscricoes"
+                className="flex items-center"
+                aria-label="Voltar para as informações das inscrições"
+              >
+                <Image
+                  src="/images/logo.png"
+                  alt="Projeto Som do Alto"
+                  width={170}
+                  height={70}
+                  className="w-[150px] md:w-[170px]"
+                  priority
+                />
+              </Link>
+
+              <Link
+                href="/inscricoes"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600"
+              >
+                <span className="text-lg">
+                  ←
+                </span>
+
+                <span>
+                  Voltar para informações da inscrição
+                </span>
+              </Link>
+
+            </div>
+
+          </div>
+
+        </header>
+
+
+        {/* =====================================================
+            ÁREA DE INSCRIÇÕES ENCERRADAS
+        ====================================================== */}
+
+        <section className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-500 to-amber-500 text-white">
+
+          <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-white/10" />
+
+          <div className="absolute -bottom-32 -left-20 w-80 h-80 rounded-full bg-black/5" />
+
+          <div className="absolute top-10 left-[8%] text-5xl opacity-10 rotate-12">
+            ♪
+          </div>
+
+          <div className="absolute bottom-8 right-[12%] text-6xl opacity-10 -rotate-12">
+            ♫
+          </div>
+
+          <div className="relative z-10 max-w-5xl mx-auto px-6 py-20 md:py-28">
+
+            <div className="max-w-3xl mx-auto text-center">
+
+              <div className="inline-flex items-center gap-2 bg-white/15 border border-white/20 backdrop-blur-sm px-5 py-2 rounded-full text-sm font-extrabold tracking-wide mb-7">
+
+                <span className="text-lg">
+                  🎵
+                </span>
+
+                PROJETO SOM DO ALTO
+
+              </div>
+
+              <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-tight">
+                Inscrições {anoInscricao}
+              </h1>
+
+              <p className="text-xl md:text-2xl font-semibold mt-5 leading-relaxed">
+                Inscrições encerradas
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        {/* =====================================================
+            MENSAGEM
+        ====================================================== */}
+
+        <section className="px-6 py-12 md:py-16">
+
+          <div className="max-w-3xl mx-auto">
+
+            <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 md:p-12 text-center">
+
+              <div className="w-20 h-20 mx-auto rounded-3xl bg-orange-100 flex items-center justify-center text-4xl mb-6">
+                📋
+              </div>
+
+              <h2 className="text-2xl md:text-3xl font-black text-gray-900">
+                Período de inscrições encerrado
+              </h2>
+
+              <p className="mt-5 text-gray-600 text-base md:text-lg leading-relaxed">
+                {mensagemEncerramento}
+              </p>
+
+              <div className="mt-8 pt-8 border-t border-gray-100">
+
+                <p className="text-sm text-gray-500">
+                  Quer acompanhar as próximas oportunidades?
+                </p>
+
+                <p className="mt-2 text-sm font-semibold text-gray-700">
+                  Acompanhe o Projeto Som do Alto pelas redes sociais.
+                </p>
+
+              </div>
+
+              <Link
+                href="/inscricoes"
+                className="mt-8 inline-flex items-center justify-center rounded-xl bg-orange-500 hover:bg-orange-600 px-7 py-3.5 font-bold text-white transition"
+              >
+                ← Voltar para informações
+              </Link>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </main>
+    );
+  }
+
+  /*
+   * ==========================================================
+   * CASO O STATUS NÃO SEJA FECHADA
+   * O FORMULÁRIO CONTINUA NORMALMENTE.
+   * ==========================================================
+   */
+
+  const alunoMenor =
+    idade !== null && idade < 18;
 
   /*
    * ETAPAS
@@ -202,97 +627,171 @@ export default function Inscricoes() {
     10,
   ];
 
-  const indiceAtual = etapas.indexOf(etapa);
-  const totalEtapas = etapas.length;
+  const indiceAtual =
+    etapas.indexOf(etapa);
 
-  const calcularIdade = (data: string) => {
-    atualizar("dataNascimento", data);
+  const totalEtapas =
+    etapas.length;
+
+  const calcularIdade = (
+    data: string
+  ) => {
+    atualizar(
+      "dataNascimento",
+      data
+    );
 
     if (!data) {
       setIdade(null);
       return;
     }
 
-    const nascimento = new Date(`${data}T00:00:00`);
-    const hoje = new Date();
+    const nascimento =
+      new Date(
+        `${data}T00:00:00`
+      );
+
+    const hoje =
+      new Date();
 
     let idadeCalculada =
-      hoje.getFullYear() - nascimento.getFullYear();
+      hoje.getFullYear() -
+      nascimento.getFullYear();
 
     const mes =
-      hoje.getMonth() - nascimento.getMonth();
+      hoje.getMonth() -
+      nascimento.getMonth();
 
     if (
       mes < 0 ||
       (mes === 0 &&
-        hoje.getDate() < nascimento.getDate())
+        hoje.getDate() <
+          nascimento.getDate())
     ) {
       idadeCalculada--;
     }
 
-    setIdade(idadeCalculada);
+    setIdade(
+      idadeCalculada
+    );
 
-    if (idadeCalculada >= 18 && etapa === 3) {
+    if (
+      idadeCalculada >= 18 &&
+      etapa === 3
+    ) {
       setEtapa(4);
     }
   };
 
-  const buscarCep = async (valor: string) => {
-    const cepLimpo = valor.replace(/\D/g, "");
+  const buscarCep = async (
+    valor: string
+  ) => {
+    const cepLimpo =
+      valor.replace(
+        /\D/g,
+        ""
+      );
 
-    atualizar("cep", valor);
+    atualizar(
+      "cep",
+      valor
+    );
+
     setErroCep("");
 
-    if (cepLimpo.length !== 8) {
-      atualizar("endereco", "");
-      atualizar("bairro", "");
-      atualizar("cidade", "");
-      atualizar("uf", "");
+    if (
+      cepLimpo.length !== 8
+    ) {
+      atualizar(
+        "endereco",
+        ""
+      );
+
+      atualizar(
+        "bairro",
+        ""
+      );
+
+      atualizar(
+        "cidade",
+        ""
+      );
+
+      atualizar(
+        "uf",
+        ""
+      );
+
       return;
     }
 
     try {
       setBuscandoCep(true);
 
-      const resposta = await fetch(
-        `https://viacep.com.br/ws/${cepLimpo}/json/`
-      );
+      const resposta =
+        await fetch(
+          `https://viacep.com.br/ws/${cepLimpo}/json/`
+        );
 
       if (!resposta.ok) {
-        throw new Error("Erro na consulta");
+        throw new Error(
+          "Erro na consulta"
+        );
       }
 
-      const resultado = await resposta.json();
+      const resultado =
+        await resposta.json();
 
       if (resultado.erro) {
-        setErroCep("CEP não encontrado.");
+        setErroCep(
+          "CEP não encontrado."
+        );
 
-        atualizar("endereco", "");
-        atualizar("bairro", "");
-        atualizar("cidade", "");
-        atualizar("uf", "");
+        atualizar(
+          "endereco",
+          ""
+        );
+
+        atualizar(
+          "bairro",
+          ""
+        );
+
+        atualizar(
+          "cidade",
+          ""
+        );
+
+        atualizar(
+          "uf",
+          ""
+        );
 
         return;
       }
 
       atualizar(
         "endereco",
-        resultado.logradouro || ""
+        resultado.logradouro ||
+          ""
       );
 
       atualizar(
         "bairro",
-        resultado.bairro || ""
+        resultado.bairro ||
+          ""
       );
 
       atualizar(
         "cidade",
-        resultado.localidade || ""
+        resultado.localidade ||
+          ""
       );
 
       atualizar(
         "uf",
-        resultado.uf || ""
+        resultado.uf ||
+          ""
       );
     } catch {
       setErroCep(
@@ -303,31 +802,45 @@ export default function Inscricoes() {
     }
   };
 
-  const proximaEtapa = () => {
-    const proxima = etapas[indiceAtual + 1];
+  const proximaEtapa =
+    () => {
+      const proxima =
+        etapas[
+          indiceAtual + 1
+        ];
 
-    if (proxima) {
-      setEtapa(proxima);
+      if (proxima) {
+        setEtapa(
+          proxima
+        );
 
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
-  };
+        window.scrollTo({
+          top: 0,
+          behavior:
+            "smooth",
+        });
+      }
+    };
 
-  const etapaAnterior = () => {
-    const anterior = etapas[indiceAtual - 1];
+  const etapaAnterior =
+    () => {
+      const anterior =
+        etapas[
+          indiceAtual - 1
+        ];
 
-    if (anterior) {
-      setEtapa(anterior);
+      if (anterior) {
+        setEtapa(
+          anterior
+        );
 
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
-  };
+        window.scrollTo({
+          top: 0,
+          behavior:
+            "smooth",
+        });
+      }
+    };
 
   const toggleLista = (
     campo:
@@ -336,188 +849,229 @@ export default function Inscricoes() {
       | "adaptacoes",
     valor: string
   ) => {
-    const lista = dados[campo];
+    const lista =
+      dados[campo];
 
-    if (lista.includes(valor)) {
+    if (
+      lista.includes(valor)
+    ) {
       atualizar(
         campo,
-        lista.filter((item) => item !== valor)
+        lista.filter(
+          (item) =>
+            item !== valor
+        )
       );
     } else {
       atualizar(
         campo,
-        [...lista, valor]
+        [
+          ...lista,
+          valor,
+        ]
       );
     }
   };
 
-  const selecionarMorador = (valor: string) => {
-    if (valor === "Moro sozinho(a)") {
-      const jaSelecionado =
-        dados.quemMoraComAluno.includes(
-          "Moro sozinho(a)"
-        );
+  const selecionarMorador =
+    (valor: string) => {
+      if (
+        valor ===
+        "Moro sozinho(a)"
+      ) {
+        const jaSelecionado =
+          dados.quemMoraComAluno.includes(
+            "Moro sozinho(a)"
+          );
 
-      if (jaSelecionado) {
+        if (
+          jaSelecionado
+        ) {
+          atualizar(
+            "quemMoraComAluno",
+            []
+          );
+
+          atualizar(
+            "pessoasResidencia",
+            ""
+          );
+
+          return;
+        }
+
         atualizar(
           "quemMoraComAluno",
-          []
+          [
+            "Moro sozinho(a)",
+          ]
         );
 
         atualizar(
           "pessoasResidencia",
-          ""
+          "1"
         );
 
         return;
       }
 
-      atualizar(
-        "quemMoraComAluno",
-        ["Moro sozinho(a)"]
-      );
+      const atual =
+        dados.quemMoraComAluno.filter(
+          (item) =>
+            item !==
+            "Moro sozinho(a)"
+        );
 
-      atualizar(
-        "pessoasResidencia",
-        "1"
-      );
-
-      return;
-    }
-
-    const atual =
-      dados.quemMoraComAluno.filter(
-        (item) =>
-          item !== "Moro sozinho(a)"
-      );
-
-    if (atual.includes(valor)) {
-      atualizar(
-        "quemMoraComAluno",
-        atual.filter(
-          (item) => item !== valor
-        )
-      );
-    } else {
-      atualizar(
-        "quemMoraComAluno",
-        [...atual, valor]
-      );
-    }
-  };
-
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
-
-    if (
-      indiceAtual <
-      totalEtapas - 1
-    ) {
-      proximaEtapa();
-      return;
-    }
-
-    if (enviando) {
-      return;
-    }
-
-    if (!dados.certidaoNascimento) {
-      alert(
-        "Por favor, envie a certidão de nascimento do aluno."
-      );
-
-      return;
-    }
-
-    if (!dados.fotoAluno) {
-      alert(
-        "Por favor, envie a foto do aluno."
-      );
-
-      return;
-    }
-
-    const limiteArquivo =
-      5 * 1024 * 1024;
-
-    if (
-      dados.certidaoNascimento.size >
-      limiteArquivo
-    ) {
-      alert(
-        "A certidão de nascimento deve ter no máximo 5 MB."
-      );
-
-      return;
-    }
-
-    if (
-      dados.fotoAluno.size >
-      limiteArquivo
-    ) {
-      alert(
-        "A foto do aluno deve ter no máximo 5 MB."
-      );
-
-      return;
-    }
-
-    try {
-      setEnviando(true);
-
-      const resultado =
-        await enviarInscricao({
-          ...dados,
-          certidaoNascimento:
-            dados.certidaoNascimento,
-          fotoAluno:
-            dados.fotoAluno,
-        });
-
-      if (!resultado.sucesso) {
-        throw new Error(
-          resultado.mensagem ||
-            "Não foi possível enviar a inscrição."
+      if (
+        atual.includes(valor)
+      ) {
+        atualizar(
+          "quemMoraComAluno",
+          atual.filter(
+            (item) =>
+              item !== valor
+          )
+        );
+      } else {
+        atualizar(
+          "quemMoraComAluno",
+          [
+            ...atual,
+            valor,
+          ]
         );
       }
+    };
 
-      setNumeroInscricao(
-        resultado.id || ""
-      );
+  const handleSubmit =
+    async (
+      e: React.FormEvent<HTMLFormElement>
+    ) => {
+      e.preventDefault();
 
-      setInscricaoEnviada(true);
+      if (
+        indiceAtual <
+        totalEtapas - 1
+      ) {
+        proximaEtapa();
+        return;
+      }
 
-      resetarDados();
+      if (enviando) {
+        return;
+      }
 
-      setIdade(null);
-      setErroCep("");
-      setBuscandoCep(false);
+      if (
+        !dados.certidaoNascimento
+      ) {
+        alert(
+          "Por favor, envie a certidão de nascimento do aluno."
+        );
 
-      formRef.current?.reset();
+        return;
+      }
 
-      setEtapa(1);
+      if (
+        !dados.fotoAluno
+      ) {
+        alert(
+          "Por favor, envie a foto do aluno."
+        );
 
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    } catch (erro) {
-      console.error(
-        "Erro ao enviar inscrição:",
-        erro
-      );
+        return;
+      }
 
-      alert(
-        erro instanceof Error
-          ? erro.message
-          : "Não foi possível enviar a inscrição.\n\nVerifique sua conexão e os arquivos enviados e tente novamente."
-      );
-    } finally {
-      setEnviando(false);
-    }
-  };
+      const limiteArquivo =
+        5 * 1024 * 1024;
+
+      if (
+        dados
+          .certidaoNascimento
+          .size >
+        limiteArquivo
+      ) {
+        alert(
+          "A certidão de nascimento deve ter no máximo 5 MB."
+        );
+
+        return;
+      }
+
+      if (
+        dados.fotoAluno.size >
+        limiteArquivo
+      ) {
+        alert(
+          "A foto do aluno deve ter no máximo 5 MB."
+        );
+
+        return;
+      }
+
+      try {
+        setEnviando(true);
+
+        const resultado =
+          await enviarInscricao({
+            ...dados,
+            certidaoNascimento:
+              dados.certidaoNascimento,
+            fotoAluno:
+              dados.fotoAluno,
+          });
+
+        if (
+          !resultado.sucesso
+        ) {
+          throw new Error(
+            resultado.mensagem ||
+              "Não foi possível enviar a inscrição."
+          );
+        }
+
+        setNumeroInscricao(
+          resultado.id ||
+            ""
+        );
+
+        setInscricaoEnviada(
+          true
+        );
+
+        resetarDados();
+
+        setIdade(null);
+        setErroCep("");
+        setBuscandoCep(
+          false
+        );
+
+        formRef.current?.reset();
+
+        setEtapa(1);
+
+        window.scrollTo({
+          top: 0,
+          behavior:
+            "smooth",
+        });
+      } catch (erro) {
+        console.error(
+          "Erro ao enviar inscrição:",
+          erro
+        );
+
+        alert(
+          erro instanceof Error
+            ? erro.message
+            : "Não foi possível enviar a inscrição.\n\nVerifique sua conexão e os arquivos enviados e tente novamente."
+        );
+      } finally {
+        setEnviando(
+          false
+        );
+      }
+    };
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -531,8 +1085,6 @@ export default function Inscricoes() {
         <div className="max-w-7xl mx-auto px-6">
 
           <div className="h-20 flex items-center justify-between">
-
-            {/* LOGO */}
 
             <Link
               href="/inscricoes"
@@ -548,9 +1100,6 @@ export default function Inscricoes() {
                 priority
               />
             </Link>
-
-
-            {/* VOLTAR */}
 
             <Link
               href="/inscricoes"
@@ -578,8 +1127,6 @@ export default function Inscricoes() {
 
       <section className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-500 to-amber-500 text-white">
 
-        {/* Elementos decorativos */}
-
         <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-white/10" />
 
         <div className="absolute -bottom-32 -left-20 w-80 h-80 rounded-full bg-black/5" />
@@ -596,8 +1143,6 @@ export default function Inscricoes() {
 
           <div className="max-w-3xl mx-auto text-center">
 
-            {/* IDENTIFICAÇÃO */}
-
             <div className="inline-flex items-center gap-2 bg-white/15 border border-white/20 backdrop-blur-sm px-5 py-2 rounded-full text-sm font-extrabold tracking-wide mb-6">
 
               <span className="text-lg">
@@ -608,26 +1153,18 @@ export default function Inscricoes() {
 
             </div>
 
-            {/* TÍTULO */}
-
             <h1 className="text-4xl md:text-6xl font-black tracking-tight leading-tight">
-              Inscrições 2026
+              Inscrições {anoInscricao}
             </h1>
-
-            {/* FRASE PRINCIPAL */}
 
             <p className="text-xl md:text-2xl font-semibold mt-4 leading-relaxed">
               Sua história pode começar com uma música.
             </p>
 
-            {/* DESCRIÇÃO */}
-
             <p className="text-white/90 text-base md:text-lg max-w-2xl mx-auto mt-4 leading-relaxed">
               Formação musical gratuita para crianças e adolescentes
               de 8 a 18 anos.
             </p>
-
-            {/* AVISO DOS DOCUMENTOS */}
 
             <div className="mt-8 max-w-xl mx-auto">
 
@@ -673,9 +1210,7 @@ export default function Inscricoes() {
 
         <div className="max-w-5xl mx-auto">
 
-          {/* =================================================
-              PROGRESSO
-          ================================================== */}
+          {/* PROGRESSO */}
 
           <div className="bg-white rounded-2xl shadow-md p-5 mb-8">
 
@@ -707,7 +1242,7 @@ export default function Inscricoes() {
                   width: `${
                     ((indiceAtual + 1) /
                       totalEtapas) *
-                    100
+                      100
                   }%`,
                 }}
               />
@@ -717,9 +1252,7 @@ export default function Inscricoes() {
           </div>
 
 
-          {/* =================================================
-              FORMULÁRIO
-          ================================================== */}
+          {/* FORMULÁRIO */}
 
           <form
             ref={formRef}
@@ -727,49 +1260,58 @@ export default function Inscricoes() {
             className="bg-white rounded-3xl shadow-lg p-6 md:p-10"
           >
 
-            {/* =================================================
-                ETAPA 1 — DADOS DO ALUNO
-            ================================================== */}
-
             {etapa === 1 && (
-
               <EtapaDadosAluno
                 dados={{
-                  nomeAluno: dados.nomeAluno,
-                  whatsapp: dados.whatsapp,
-                  cpfAluno: dados.cpfAluno,
+                  nomeAluno:
+                    dados.nomeAluno,
+                  whatsapp:
+                    dados.whatsapp,
+                  cpfAluno:
+                    dados.cpfAluno,
                   dataNascimento:
                     dados.dataNascimento,
-                  cep: dados.cep,
-                  endereco: dados.endereco,
-                  numero: dados.numero,
+                  cep:
+                    dados.cep,
+                  endereco:
+                    dados.endereco,
+                  numero:
+                    dados.numero,
                   complemento:
                     dados.complemento,
-                  bairro: dados.bairro,
-                  cidade: dados.cidade,
-                  uf: dados.uf,
+                  bairro:
+                    dados.bairro,
+                  cidade:
+                    dados.cidade,
+                  uf:
+                    dados.uf,
                 }}
                 idade={idade}
-                buscandoCep={buscandoCep}
-                erroCep={erroCep}
-                atualizar={(campo, valor) =>
-                  atualizar(campo, valor)
+                buscandoCep={
+                  buscandoCep
+                }
+                erroCep={
+                  erroCep
+                }
+                atualizar={(
+                  campo,
+                  valor
+                ) =>
+                  atualizar(
+                    campo,
+                    valor
+                  )
                 }
                 calcularIdade={
                   calcularIdade
                 }
-                buscarCep={buscarCep}
+                buscarCep={
+                  buscarCep
+                }
               />
-
             )}
 
-
-            {/* =================================================
-                ETAPA 2 — DOCUMENTOS
-            ================================================== */}
-
             {etapa === 2 && (
-
               <EtapaDocumentos
                 certidaoNascimento={
                   dados.certidaoNascimento
@@ -777,20 +1319,19 @@ export default function Inscricoes() {
                 fotoAluno={
                   dados.fotoAluno
                 }
-                atualizar={(campo, valor) =>
-                  atualizar(campo, valor)
+                atualizar={(
+                  campo,
+                  valor
+                ) =>
+                  atualizar(
+                    campo,
+                    valor
+                  )
                 }
               />
-
             )}
 
-
-            {/* =================================================
-                ETAPA 3 — RESPONSÁVEL
-            ================================================== */}
-
             {etapa === 3 && (
-
               <EtapaResponsavel
                 dados={{
                   nomeResponsavel:
@@ -800,44 +1341,45 @@ export default function Inscricoes() {
                   cpfResponsavel:
                     dados.cpfResponsavel,
                 }}
-                atualizar={(campo, valor) =>
-                  atualizar(campo, valor)
+                atualizar={(
+                  campo,
+                  valor
+                ) =>
+                  atualizar(
+                    campo,
+                    valor
+                  )
                 }
               />
-
             )}
 
-
-            {/* =================================================
-                ETAPA 4 — ESCOLA
-            ================================================== */}
-
             {etapa === 4 && (
-
               <EtapaEscolar
                 dados={{
-                  estuda: dados.estuda,
-                  escola: dados.escola,
+                  estuda:
+                    dados.estuda,
+                  escola:
+                    dados.escola,
                   redeEnsino:
                     dados.redeEnsino,
-                  serie: dados.serie,
+                  serie:
+                    dados.serie,
                   periodoEstudo:
                     dados.periodoEstudo,
                 }}
-                atualizar={(campo, valor) =>
-                  atualizar(campo, valor)
+                atualizar={(
+                  campo,
+                  valor
+                ) =>
+                  atualizar(
+                    campo,
+                    valor
+                  )
                 }
               />
-
             )}
 
-
-            {/* =================================================
-                ETAPA 5 — MÚSICA
-            ================================================== */}
-
             {etapa === 5 && (
-
               <EtapaMusical
                 dados={{
                   tocaInstrumento:
@@ -847,23 +1389,23 @@ export default function Inscricoes() {
                   instrumentoInteresse:
                     dados.instrumentoInteresse,
                 }}
-                atualizar={(campo, valor) =>
-                  atualizar(campo, valor)
+                atualizar={(
+                  campo,
+                  valor
+                ) =>
+                  atualizar(
+                    campo,
+                    valor
+                  )
                 }
               />
-
             )}
 
-
-            {/* =================================================
-                ETAPA 6 — PERFIL SOCIOFAMILIAR
-            ================================================== */}
-
             {etapa === 6 && (
-
               <EtapaSociofamiliar
                 dados={{
-                  moradia: dados.moradia,
+                  moradia:
+                    dados.moradia,
                   quemMoraComAluno:
                     dados.quemMoraComAluno,
                   pessoasResidencia:
@@ -881,23 +1423,22 @@ export default function Inscricoes() {
                   outraRenda:
                     dados.outraRenda,
                 }}
-                atualizar={(campo, valor) =>
-                  atualizar(campo, valor)
+                atualizar={(
+                  campo,
+                  valor
+                ) =>
+                  atualizar(
+                    campo,
+                    valor
+                  )
                 }
                 selecionarMorador={
                   selecionarMorador
                 }
               />
-
             )}
 
-
-            {/* =================================================
-                ETAPA 7 — NECESSIDADES ESPECÍFICAS
-            ================================================== */}
-
             {etapa === 7 && (
-
               <EtapaNecessidades
                 dados={{
                   possuiNecessidade:
@@ -913,23 +1454,28 @@ export default function Inscricoes() {
                   outraAdaptacao:
                     dados.outraAdaptacao,
                 }}
-                atualizar={(campo, valor) =>
-                  atualizar(campo, valor)
+                atualizar={(
+                  campo,
+                  valor
+                ) =>
+                  atualizar(
+                    campo,
+                    valor
+                  )
                 }
-                toggleLista={(campo, valor) =>
-                  toggleLista(campo, valor)
+                toggleLista={(
+                  campo,
+                  valor
+                ) =>
+                  toggleLista(
+                    campo,
+                    valor
+                  )
                 }
               />
-
             )}
 
-
-            {/* =================================================
-                ETAPA 8 — PERFIL SOCIOECONÔMICO
-            ================================================== */}
-
             {etapa === 8 && (
-
               <EtapaSocioeconomico
                 dados={{
                   televisao:
@@ -951,20 +1497,19 @@ export default function Inscricoes() {
                   moto:
                     dados.moto,
                 }}
-                atualizar={(campo, valor) =>
-                  atualizar(campo, valor)
+                atualizar={(
+                  campo,
+                  valor
+                ) =>
+                  atualizar(
+                    campo,
+                    valor
+                  )
                 }
               />
-
             )}
 
-
-            {/* =================================================
-                ETAPA 9 — COMO CONHECEU
-            ================================================== */}
-
             {etapa === 9 && (
-
               <EtapaComoConheceu
                 dados={{
                   comoConheceu:
@@ -976,20 +1521,19 @@ export default function Inscricoes() {
                   tamanhoCalcaSaia:
                     dados.tamanhoCalcaSaia,
                 }}
-                atualizar={(campo, valor) =>
-                  atualizar(campo, valor)
+                atualizar={(
+                  campo,
+                  valor
+                ) =>
+                  atualizar(
+                    campo,
+                    valor
+                  )
                 }
               />
-
             )}
 
-
-            {/* =================================================
-                ETAPA 10 — AUTORIZAÇÕES
-            ================================================== */}
-
             {etapa === 10 && (
-
               <EtapaAutorizacoes
                 dados={{
                   autorizaImagem:
@@ -999,49 +1543,45 @@ export default function Inscricoes() {
                   declaracaoVeracidade:
                     dados.declaracaoVeracidade,
                 }}
-                atualizar={atualizar}
+                atualizar={
+                  atualizar
+                }
               />
-
             )}
 
 
-            {/* =================================================
-                NAVEGAÇÃO
-            ================================================= */}
+            {/* NAVEGAÇÃO */}
 
             <div className="flex flex-col-reverse sm:flex-row justify-between gap-4 mt-10 pt-8 border-t border-gray-100">
 
               {indiceAtual > 0 ? (
-
                 <button
                   type="button"
-                  onClick={etapaAnterior}
+                  onClick={
+                    etapaAnterior
+                  }
                   className="px-7 py-3 rounded-xl border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 transition"
                 >
                   ← Voltar
                 </button>
-
               ) : (
-
                 <div />
-
               )}
 
               {indiceAtual <
               totalEtapas - 1 ? (
-
                 <button
                   type="submit"
                   className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-bold transition sm:ml-auto"
                 >
                   Continuar →
                 </button>
-
               ) : (
-
                 <button
                   type="submit"
-                  disabled={enviando}
+                  disabled={
+                    enviando
+                  }
                   className={`bg-orange-500 text-white px-8 py-3 rounded-xl font-bold transition sm:ml-auto ${
                     enviando
                       ? "opacity-60 cursor-not-allowed"
@@ -1052,7 +1592,6 @@ export default function Inscricoes() {
                     ? "Enviando..."
                     : "Enviar Inscrição"}
                 </button>
-
               )}
 
             </div>
@@ -1069,7 +1608,9 @@ export default function Inscricoes() {
       ====================================================== */}
 
       <ModalEnviando
-        aberto={enviando}
+        aberto={
+          enviando
+        }
       />
 
 
@@ -1078,7 +1619,9 @@ export default function Inscricoes() {
       ====================================================== */}
 
       <ModalSucesso
-        aberto={inscricaoEnviada}
+        aberto={
+          inscricaoEnviada
+        }
         numeroInscricao={
           numeroInscricao
         }
@@ -1089,7 +1632,8 @@ export default function Inscricoes() {
 
           window.scrollTo({
             top: 0,
-            behavior: "smooth",
+            behavior:
+              "smooth",
           });
         }}
       />
