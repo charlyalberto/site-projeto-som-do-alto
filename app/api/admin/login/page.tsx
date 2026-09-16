@@ -6,7 +6,6 @@ import { signIn } from "next-auth/react";
 export default function AdminLoginPage() {
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
-  const [codigo, setCodigo] = useState("");
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [bloqueado, setBloqueado] = useState(false);
@@ -70,7 +69,6 @@ export default function AdminLoginPage() {
     const resultado = await signIn("credentials", {
       username: usuario,
       password: senha,
-      token: codigo,
       redirect: false,
     });
 
@@ -90,8 +88,8 @@ export default function AdminLoginPage() {
         setBloqueado(false);
         setErro(
           statusDepois.tentativasRestantes <= 2
-            ? `Usuário, senha ou código inválidos. Restam ${statusDepois.tentativasRestantes} tentativa(s) antes do bloqueio temporário.`
-            : "Usuário, senha ou código inválidos."
+            ? `Usuário ou senha inválidos. Restam ${statusDepois.tentativasRestantes} tentativa(s) antes do bloqueio temporário.`
+            : "Usuário ou senha inválidos."
         );
       }
 
@@ -109,13 +107,11 @@ export default function AdminLoginPage() {
         <div className="bg-white rounded-3xl shadow-lg border border-gray-200 overflow-hidden">
 
           <div className="bg-orange-500 px-8 py-8 text-center">
-            <div className="inline-block rounded-2xl bg-white px-6 py-4 shadow-sm">
-              <img
-                src="/images/logo.png"
-                alt="Projeto Som do Alto"
-                className="w-[190px] h-auto mx-auto"
-              />
-            </div>
+            <img
+              src="/images/logo.png"
+              alt="Projeto Som do Alto"
+              className="w-[190px] h-auto mx-auto"
+            />
 
             <h1 className="text-2xl font-bold text-white mt-6">
               Área Administrativa
@@ -170,36 +166,6 @@ export default function AdminLoginPage() {
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:cursor-not-allowed disabled:bg-gray-100"
                   placeholder="Digite sua senha"
                 />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="codigo"
-                  className="block text-sm font-semibold text-gray-700 mb-2"
-                >
-                  Código de verificação
-                </label>
-
-                <input
-                  id="codigo"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  value={codigo}
-                  onChange={(event) =>
-                    setCodigo(event.target.value.replace(/\D/g, ""))
-                  }
-                  autoComplete="one-time-code"
-                  required
-                  disabled={bloqueado}
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 tracking-[0.3em] text-center outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100 disabled:cursor-not-allowed disabled:bg-gray-100"
-                  placeholder="000000"
-                />
-
-                <p className="mt-1.5 text-xs text-gray-400">
-                  Código de 6 dígitos do seu aplicativo autenticador.
-                </p>
               </div>
 
               {erro && (

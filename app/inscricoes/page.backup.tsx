@@ -583,7 +583,7 @@ export default function Inscricoes() {
             </span>
 
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight mb-5 drop-shadow-lg">
-              Inscrições 2026
+              Inscrições
             </h1>
 
             <p className="text-2xl md:text-3xl font-semibold leading-tight max-w-3xl mx-auto drop-shadow-md">

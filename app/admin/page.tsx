@@ -89,7 +89,10 @@ export default function AdminPage() {
 
           {/* GALERIA */}
 
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          <a
+            href="/admin/galeria"
+            className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md hover:border-orange-200 transition block"
+          >
 
             <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center text-2xl mb-5">
               📸
@@ -106,13 +109,13 @@ export default function AdminPage() {
 
             <div className="mt-5">
 
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold">
-                Em desenvolvimento
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-50 text-orange-600 text-xs font-semibold">
+                Gerenciar galeria →
               </span>
 
             </div>
 
-          </div>
+          </a>
 
 
           {/* VÍDEOS */}

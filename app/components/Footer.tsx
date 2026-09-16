@@ -88,7 +88,7 @@ export default function Footer() {
                   href="/inscricoes"
                   className="text-gray-300 hover:text-orange-500 transition"
                 >
-                  Inscrições 2026
+                  Inscrições
                 </a>
               </li>
 

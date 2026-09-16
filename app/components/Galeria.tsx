@@ -112,11 +112,29 @@ export default function Galeria() {
           </div>
         ))}
 
+            </div>
+
+      {/* =====================================================
+          BOTÃO — MAIS FOTOS
+      ===================================================== */}
+      <div className="flex justify-center mt-12">
+
+        <a
+          href="/galeria"
+          className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-orange-500 text-white font-bold shadow-sm hover:bg-orange-600 hover:shadow-md transition-all duration-300"
+        >
+          Ver mais fotos
+          <span className="text-lg">
+            →
+          </span>
+        </a>
+
       </div>
 
       {/* Lightbox */}
       {imagemAberta !== null && (
-        <div
+
+<div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6"
           onClick={fecharImagem}
         >

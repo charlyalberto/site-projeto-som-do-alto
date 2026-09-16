@@ -14,7 +14,7 @@ export default function Navbar() {
     { nome: "Vídeos", href: "#videos" },
     { nome: "Parceiros", href: "#parceiros" },
     { nome: "Contato", href: "#contato" },
-    { nome: "Inscrições 2026", href: "/inscricoes" },
+    { nome: "Inscrições", href: "/inscricoes" },
   ];
 
   const fecharMenu = () => {

@@ -106,7 +106,7 @@ export default function InscricoesPage() {
             </span>
 
             <h1 className="mt-6 text-5xl font-extrabold tracking-tight md:text-7xl">
-              Inscrições 2026
+              Inscrições
             </h1>
 
             <h2 className="mt-4 text-2xl font-bold md:text-3xl">
